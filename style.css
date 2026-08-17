@@ -1,0 +1,210 @@
+/* ====== ALBUM WRAPPER - TẠO KHOẢNG CÁCH GIỮA CÁC ALBUM ====== */
+.album-wrapper {
+    margin-bottom: 50px;  /* Khoảng cách giữa các album */
+    padding-bottom: 20px;
+    border-bottom: 3px dashed #e0e0e0;  /* Đường kẻ phân cách */
+}
+
+.album-wrapper:last-child {
+    border-bottom: none;  /* Album cuối cùng không có đường kẻ */
+}
+
+.album-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 30px 0 20px 0;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.image-item {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.image-item:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.image-item img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    display: block;
+}
+
+@media (max-width: 600px) {
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    .image-item img {
+        height: 150px;
+    }
+    .album-title {
+        font-size: 18px;
+        padding: 8px 15px;
+    }
+}
+
+.category {
+    margin-bottom: 70px;
+}
+
+.category-title {
+    font-size: 32px;
+    margin: 40px 0 25px 0;
+    padding: 12px 25px;
+
+    color: white;
+
+    background:
+        linear-gradient(
+            135deg,
+            #667eea 0%,
+            #764ba2 100%
+        );
+
+    border-radius: 12px;
+
+    display: inline-block;
+}
+
+.statistics {
+    text-align: center;
+    color: #28a745;
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+.error {
+    text-align: center;
+    padding: 40px;
+    background: #f8d7da;
+    border-radius: 10px;
+}
+
+/* ====== VIDEO GALLERY ====== */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto 40px auto;
+}
+
+.video-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.video-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.video-thumbnail {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    height: 0;
+    overflow: hidden;
+    background: #000;
+}
+
+.video-thumbnail img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.play-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 0, 0, 0.85);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+.video-card:hover .play-button {
+    transform: translate(-50%, -50%) scale(1.1);
+    background: rgba(255, 0, 0, 1);
+}
+
+.video-title {
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px 15px 5px 15px;
+    margin: 0;
+    color: #1a1a2e;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 52px;
+}
+
+.video-date {
+    font-size: 12px;
+    color: #888;
+    padding: 0 15px 12px 15px;
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    .video-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    .video-title {
+        font-size: 14px;
+        height: 44px;
+    }
+    .play-button {
+        width: 50px;
+        height: 50px;
+        font-size: 22px;
+    }
+}
+
+/* ====== CATEGORY SECTION (DÙNG CHUNG CHO ẢNH VÀ VIDEO) ====== */
+.category-section {
+    margin-bottom: 60px;
+}
+
+.category-section:last-child {
+    margin-bottom: 0;
+}
