@@ -7,8 +7,18 @@ import requests
 from config import CLOUDINARY_CONFIG, YOUTUBE_CONFIG
 
 app = Flask(__name__)
-CORS(app)
 
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "https://trungtamttvh-thuvienso.github.io",
+            "http://localhost:5500",
+            "http://127.0.0.1:5500"
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 # =========================================================
 # CẤU HÌNH CLOUDINARY
 # =========================================================
