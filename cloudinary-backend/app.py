@@ -22,6 +22,22 @@ CORS(app, resources={
         "allow_headers": ["Content-Type", "Authorization"]
     }
 })
+
+# =========================================================
+# TRANG CHỦ (Gốc '/') - ĐỂ KHÔNG BỊ LỖI 404
+# =========================================================
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({
+        "message": "API đang hoạt động!",
+        "endpoints": {
+            "images": "/api/images",
+            "youtube": "/api/youtube",
+            "test_playlist": "/api/test-playlist"
+        }
+    })
+    
+    
 # =========================================================
 # CẤU HÌNH CLOUDINARY
 # =========================================================
