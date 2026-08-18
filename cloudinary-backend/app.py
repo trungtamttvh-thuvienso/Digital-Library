@@ -3,6 +3,7 @@ from flask_cors import CORS
 import cloudinary
 import cloudinary.api
 import requests
+import os
 
 from config import CLOUDINARY_CONFIG, YOUTUBE_CONFIG
 
@@ -13,7 +14,9 @@ CORS(app, resources={
         "origins": [
             "https://trungtamttvh-thuvienso.github.io",
             "http://localhost:5500",
-            "http://127.0.0.1:5500"
+            "http://localhost:5501",
+            "http://127.0.0.1:5500",
+            "http://127.0.0.1:5501"
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
@@ -388,8 +391,15 @@ def get_youtube():
 # =========================================================
 
 if __name__ == '__main__':
-    print("\n🚀 Flask Server đang chạy")
-    print("📷 http://127.0.0.1:5000/api/images")
-    print("🎥 http://127.0.0.1:5000/api/youtube")
-    print("🧪 http://127.0.0.1:5000/api/test-playlist")
-    app.run(debug=True, port=5000)
+    import os
+
+    port = int(os.environ.get('PORT', 5000))
+
+    print("🚀 Flask Server đang chạy...")
+    print(f"🌐 Port: {port}")
+
+    app.run(
+        host='0.0.0.0',
+        port=port,
+        debug=False
+    )
