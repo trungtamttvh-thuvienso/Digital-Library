@@ -9,19 +9,7 @@ from config import CLOUDINARY_CONFIG, YOUTUBE_CONFIG
 
 app = Flask(__name__)
 
-CORS(app, resources={
-    r"/*": {
-        "origins": [
-            "https://trungtamttvh-thuvienso.github.io",
-            "http://localhost:5500",
-            "http://localhost:5501",
-            "http://127.0.0.1:5500",
-            "http://127.0.0.1:5501"
-        ],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-})
+CORS(app)
 
 # =========================================================
 # TRANG CHỦ (Gốc '/') - ĐỂ KHÔNG BỊ LỖI 404
