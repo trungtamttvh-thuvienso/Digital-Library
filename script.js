@@ -1,12 +1,35 @@
-const API_BASE_URL = 'https://backend-lfz9.onrender.com';
+// ============================================================
+// CẤU HÌNH API URL LINH HOẠT (Có thể chuyển đổi bằng UI)
+// ============================================================
+
+// 1. URL của Backend trên Render (thay bằng URL thật của cậu)
+const RENDER_API_URL = 'https://backend-lfz9.onrender.com';
+
+// 2. URL của Backend chạy Local Python
+const LOCAL_API_URL = 'http://localhost:5000';
+
+// 3. Hàm lấy API URL hiện tại (dựa vào Local Storage)
+function getApiBaseUrl() {
+    const mode = localStorage.getItem('api_mode') || 'local'; // Mặc định là local
+    console.log(`🔧 Chế độ hiện tại: ${mode}`);
+    return mode === 'render' ? RENDER_API_URL : LOCAL_API_URL;
+}
+
+// 4. Hàm chuyển đổi chế độ (Gọi từ nút bấm trên giao diện)
+function switchApiMode(mode) {
+    localStorage.setItem('api_mode', mode);
+    console.log(`🔄 Đã chuyển sang chế độ: ${mode}`);
+    location.reload(); // Tự động tải lại trang để áp dụng
+}
 
 // ================================
-// LẤY ẢNH (Đã thêm xử lý lỗi tốt hơn)
+// LẤY ẢNH (Dùng API động)
 // ================================
 async function getImages() {
+    const url = `${getApiBaseUrl()}/api/images`;
     console.log("🔄 Đang gọi API:", url);
 
-    const response = await fetch('https://backend-lfz9.onrender.com/api/images');
+    const response = await fetch(url);
     console.log('📡 Status:', response.status);
 
     if (!response.ok) {
@@ -24,15 +47,24 @@ async function getImages() {
 }
 
 // ================================
-// LẤY VIDEO
+// LẤY VIDEO (Dùng API động)
 // ================================
 async function getYoutube() {
-    const url = `${API_BASE_URL}/api/youtube`;
+    const url = `${getApiBaseUrl()}/api/youtube`;
+    console.log("🔄 Đang gọi API YouTube:", url);
+
     const response = await fetch(url);
+    console.log('📡 Status YouTube:', response.status);
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const result = await response.json();
+    console.log("📦 DATA YOUTUBE:", result);
 
     if (!result.success) {
-        throw new Error(result.error);
+        throw new Error(result.error || "Lỗi không xác định từ server YouTube");
     }
     return result.data;
 }
@@ -119,11 +151,22 @@ async function displayVideos() {
 
     try {
         const playlists = await getYoutube();
+        
+        if (Object.keys(playlists).length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:40px; background:#fff3cd; border-radius:10px;">
+                    ⚠️ Không tìm thấy video nào.<br>
+                    <span style="font-size:14px; color:#666;">Vui lòng kiểm tra xem backend đã có Playlist ID chưa.</span>
+                </div>
+            `;
+            return;
+        }
+
         let html = '';
         let totalVideos = 0;
 
         for (const [playlistName, playlist] of Object.entries(playlists)) {
-            if (playlist.videos.length === 0) continue;
+            if (!playlist.videos || playlist.videos.length === 0) continue;
             totalVideos += playlist.videos.length;
 
             html += `
@@ -148,11 +191,6 @@ async function displayVideos() {
             html += `</div></section>`;
         }
 
-        if (totalVideos === 0) {
-            container.innerHTML = `<div style="text-align:center; padding:40px; background:#fff3cd; border-radius:10px;">❌ Không tìm thấy video.</div>`;
-            return;
-        }
-
         container.innerHTML = `
             <p style="text-align:center; color:#28a745; font-size:18px; margin-bottom:20px;">
                 ✅ Tìm thấy ${totalVideos} video
@@ -164,7 +202,8 @@ async function displayVideos() {
         console.error('❌ Lỗi tải video:', error);
         container.innerHTML = `
             <div style="text-align:center; padding:40px; background:#f8d7da; border-radius:10px;">
-                ❌ Không thể tải video: ${error.message}
+                ❌ Không thể tải video.<br>
+                <span style="font-size:14px; color:#666;">Lỗi chi tiết: ${error.message}</span>
             </div>
         `;
     }
@@ -174,7 +213,61 @@ function openVideo(videoId) {
     window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
 }
 
+// ================================
+// TẠO NÚT CHUYỂN CHẾ ĐỘ (Thêm vào header)
+// ================================
+function addModeSwitcher() {
+    const currentMode = localStorage.getItem('api_mode') || 'local';
+    const modeText = currentMode === 'render' ? '🔴 Render' : '🟢 Local';
+
+    // Tạo thẻ div chứa nút chuyển đổi
+    const switcher = document.createElement('div');
+    switcher.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        background: white;
+        padding: 12px 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        font-family: Arial, sans-serif;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+    `;
+
+    const label = document.createElement('span');
+    label.textContent = `API: `;
+
+    const btn = document.createElement('button');
+    btn.textContent = modeText;
+    btn.style.cssText = `
+        border: none;
+        padding: 6px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        background: ${currentMode === 'render' ? '#ff4444' : '#28a745'};
+        color: white;
+        transition: 0.3s;
+    `;
+    
+    // Khi bấm nút: Chuyển đổi chế độ
+    btn.onclick = function() {
+        const newMode = currentMode === 'render' ? 'local' : 'render';
+        switchApiMode(newMode);
+    };
+
+    switcher.appendChild(label);
+    switcher.appendChild(btn);
+    document.body.appendChild(switcher);
+}
+
+// Chạy khi trang load xong
 document.addEventListener('DOMContentLoaded', () => {
+    addModeSwitcher(); // Thêm nút chuyển chế độ
     displayImages();
     displayVideos();
 });

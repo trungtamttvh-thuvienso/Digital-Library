@@ -1,3 +1,5 @@
+# app.py - Đã thêm CORS cho localhost
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 import cloudinary
@@ -12,7 +14,8 @@ app = Flask(__name__)
 # =========================================================
 # CẤU HÌNH CORS (Cho phép mọi nơi truy cập)
 # =========================================================
-CORS(app)
+# Đã bật CORS cho tất cả domain
+CORS(app, origins=["*"])
 
 # =========================================================
 # CẤU HÌNH CLOUDINARY
@@ -24,7 +27,7 @@ cloudinary.config(
 )
 
 # =========================================================
-# TRANG CHỦ (BẮT BUỘC CÓ ĐỂ RENDER KHÔNG BÁO 404)
+# TRANG CHỦ
 # =========================================================
 @app.route('/', methods=['GET'])
 def home():
@@ -116,8 +119,6 @@ def build_album_structure(images):
 def get_images():
     try:
         print("🖼️ Bắt đầu quét Cloudinary...")
-        
-        # Thêm dòng này để xem biến cấu hình có load được không
         print(f"Cloud Name: {CLOUDINARY_CONFIG.get('cloud_name')}")
 
         images = get_all_images()
@@ -132,18 +133,56 @@ def get_images():
         })
 
     except Exception as e:
-        # Ghi lỗi chi tiết ra Log của Render để cậu dễ nhìn thấy
         print(f"❌ LỖI NGHIÊM TRỌNG CLOUDINARY: {e}")
-        
-        # Trả về lỗi 500 để trình duyệt biết là lỗi Server chứ không phải Not Found
         return jsonify({
             'success': False,
             'error': str(e)
         }), 500
 
 # =========================================================
-# YOUTUBE - LẤY DANH SÁCH PLAYLIST & VIDEO
+# YOUTUBE - TỰ ĐỘNG QUÉT TOÀN BỘ CHANNEL
 # =========================================================
+
+# Hàm lấy danh sách tất cả Playlist từ Channel ID
+def get_youtube_playlists(channel_id):
+    playlists = []
+    next_page_token = None
+
+    while True:
+        params = {
+            'part': 'snippet,contentDetails',
+            'channelId': channel_id,
+            'maxResults': 50,
+            'key': YOUTUBE_CONFIG['api_key']
+        }
+        if next_page_token:
+            params['pageToken'] = next_page_token
+
+        response = requests.get(
+            'https://www.googleapis.com/youtube/v3/playlists',
+            params=params,
+            timeout=15
+        )
+
+        if response.status_code != 200:
+            response.raise_for_status()
+
+        data = response.json()
+
+        for item in data.get('items', []):
+            playlists.append({
+                'id': item['id'],
+                'title': item['snippet']['title'],
+                'description': item['snippet'].get('description', '')
+            })
+
+        next_page_token = data.get('nextPageToken')
+        if not next_page_token:
+            break
+
+    return playlists
+
+# Hàm lấy video trong một Playlist (Giữ nguyên của cậu)
 def get_youtube_playlist_videos(playlist_id):
     videos = []
     next_page_token = None
@@ -198,28 +237,48 @@ def get_youtube_playlist_videos(playlist_id):
 
     return videos
 
+# Hàm tổng hợp: Tự động quét Channel -> Lấy Playlist -> Lấy Video
 def get_all_youtube_data():
     result = {}
+    channel_id = YOUTUBE_CONFIG.get('channel_id')
     
-    # Cậu có thể cấu hình danh sách Playlist ID ở đây
-    # Lưu ý: Render cần thêm biến môi trường YOUTUBE_CHANNEL_ID 
-    # và danh sách playlist ID (nếu có)
-    playlists = [
-        # Ví dụ thêm vào đây: {'id': 'PLxxxxx', 'title': 'Tên playlist'}
-    ] 
-    
-    # Nếu cậu muốn quét channel tự động như code cũ, cần thêm hàm get_youtube_playlists
-    # Ở đây mình cấu trúc lại API để đảm bảo không lỗi.
-    # Nếu có playlist cụ thể, hãy thêm vào list playlists ở trên.
+    if not channel_id:
+        return result
 
+    print(f"🎬 Bắt đầu quét Channel YouTube: {channel_id}")
+    
+    # Bước 1: Lấy danh sách Playlist
+    try:
+        playlists = get_youtube_playlists(channel_id)
+        print(f"✅ Tìm thấy {len(playlists)} playlist")
+    except Exception as e:
+        print(f"❌ Lỗi lấy playlist: {e}")
+        return result
+
+    # Bước 2: Với mỗi Playlist, lấy video bên trong
     for playlist in playlists:
-        videos = get_youtube_playlist_videos(playlist['id'])
-        result[playlist['title']] = {
-            'videos': videos
-        }
+        playlist_id = playlist['id']
+        playlist_title = playlist['title']
+        
+        print(f"  📂 Đang lấy video từ: {playlist_title}")
+        
+        try:
+            videos = get_youtube_playlist_videos(playlist_id)
+            result[playlist_title] = {
+                'videos': videos
+            }
+            print(f"    ✅ Lấy được {len(videos)} video")
+        except Exception as e:
+            print(f"    ❌ Lỗi lấy video từ playlist {playlist_title}: {e}")
+            result[playlist_title] = {
+                'videos': []
+            }
 
     return result
 
+# =========================================================
+# API YOUTUBE
+# =========================================================
 @app.route('/api/youtube', methods=['GET'])
 def get_youtube():
     try:
@@ -244,4 +303,5 @@ def get_youtube():
 # =========================================================
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    # Đã xóa app.run để dùng Gunicorn trên Render
+    # Thêm host='0.0.0.0' để cho phép truy cập từ mạng local
+    app.run(host='0.0.0.0', port=port, debug=True)
