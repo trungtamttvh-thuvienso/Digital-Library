@@ -3,7 +3,7 @@
 // ============================================================
 
 // 1. URL của Backend trên Render (thay bằng URL thật của cậu)
-const RENDER_API_URL = 'https://backend-lfz9.onrender.com';
+const RENDER_API_URL = 'https://digital-library-967p.onrender.com';
 
 // 2. URL của Backend chạy Local Python
 const LOCAL_API_URL = 'http://localhost:5000';
@@ -214,9 +214,18 @@ function openVideo(videoId) {
 }
 
 // ================================
-// TẠO NÚT CHUYỂN CHẾ ĐỘ (Thêm vào header)
+// TẠO NÚT CHUYỂN CHẾ ĐỘ (Chỉ hiện khi chạy Live Server)
 // ================================
 function addModeSwitcher() {
+    // Kiểm tra xem có đang chạy ở localhost không
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // Nếu KHÔNG phải localhost (tức là đang chạy trên Render / web thật) => KHÔNG hiện nút
+    if (!isLocal) {
+        return; 
+    }
+
+    // ---- Chỉ những dòng dưới đây mới chạy khi ở Localhost ----
     const currentMode = localStorage.getItem('api_mode') || 'local';
     const modeText = currentMode === 'render' ? '🔴 Render' : '🟢 Local';
 
@@ -257,7 +266,8 @@ function addModeSwitcher() {
     // Khi bấm nút: Chuyển đổi chế độ
     btn.onclick = function() {
         const newMode = currentMode === 'render' ? 'local' : 'render';
-        switchApiMode(newMode);
+        localStorage.setItem('api_mode', newMode);
+        location.reload();
     };
 
     switcher.appendChild(label);
