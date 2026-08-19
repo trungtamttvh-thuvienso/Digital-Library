@@ -301,6 +301,10 @@ def get_youtube():
 # =========================================================
 # CHẠY SERVER
 # =========================================================
+
+# Bắt buộc Flask chạy bằng HTTPS (Để điện thoại và Live Server không chặn)
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     # Thêm host='0.0.0.0' để cho phép truy cập từ mạng local
