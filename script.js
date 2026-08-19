@@ -8,7 +8,7 @@ const LOCAL_API_URL = 'http://localhost:5000';
 
 // 2. Hàm lấy URL - Mặc định là Render, trừ khi bấm nút Local
 function getApiBaseUrl() {
-    const mode = localStorage.getItem('api_mode') || 'render'; // 👈 Đã đổi default thành 'render'
+    const mode = localStorage.getItem('api_mode') || 'render'; 
     const url = mode === 'render' ? RENDER_API_URL : LOCAL_API_URL;
     return url.replace(/\/+$/, ''); 
 }
@@ -19,61 +19,20 @@ function switchApiMode(mode) {
 }
 
 // ============================================================
-// HỘP LOG HIỂN THỊ LỖI TRÊN MÀN HÌNH (Dành cho điện thoại)
+// HỘP LOG ĐÃ BỊ VÔ HIỆU HÓA HOÀN TOÀN (Không hiện trên màn hình nữa)
 // ============================================================
 function showErrorOnScreen(message) {
-    // Tìm hoặc tạo thẻ div để hiện lỗi
-    let errorBox = document.getElementById('mobile-error-box');
-    if (!errorBox) {
-        errorBox = document.createElement('div');
-        errorBox.id = 'mobile-error-box';
-        errorBox.style.cssText = `
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            z-index: 99999;
-            background: #ffebee;
-            border: 2px solid #d32f2f;
-            color: #b71c1c;
-            padding: 15px;
-            border-radius: 10px;
-            font-family: monospace;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            max-height: 80vh;
-            overflow-y: auto;
-            display: none; /* Mặc định ẩn, khi có lỗi thì hiện */
-        `;
-        document.body.appendChild(errorBox);
-    }
-
-    // Hiện hộp lỗi và in nội dung
-    errorBox.style.display = 'block';
-    const time = new Date().toLocaleTimeString();
-    errorBox.innerHTML += `<div style="border-bottom:1px solid #ef9a9a; padding: 5px 0;">[${time}] ⚠️ ${message}</div>`;
-    
-    // Tự động cuộn xuống dưới cùng
-    errorBox.scrollTop = errorBox.scrollHeight;
-
-    // Console log để cậu vẫn xem được nếu đang dùng máy tính
-    console.error(`[${time}] ⚠️ ${message}`);
-}
-
-// Hàm xóa hộp log (nếu muốn xóa khi đã sửa xong lỗi)
-function clearErrorBox() {
-    const box = document.getElementById('mobile-error-box');
-    if (box) box.remove();
+    // Hàm này đã bị vô hiệu hóa, nó không làm gì cả
+    return; 
 }
 
 // ================================================================
-// HÀM GỌI API (CÓ BẮT LỖI VÀ IN RA MÀN HÌNH)
+// HÀM GỌI API 
 // ================================================================
 async function fetchApi(endpoint) {
     const baseUrl = getApiBaseUrl();
     const url = `${baseUrl}${endpoint}`;
     console.log("🔄 Gọi API:", url);
-    //showErrorOnScreen(`🔄 Đang gọi: ${url}`); // In ra màn hình luôn
 
     try {
         const response = await fetch(url, {
@@ -92,14 +51,12 @@ async function fetchApi(endpoint) {
         return result.data;
 
     } catch (error) {
-        // In lỗi chi tiết ra màn hình
-        //showErrorOnScreen(`❌ THẤT BẠI: ${error.message}`);
-        throw error; // Vẫn ném lỗi để hàm display bắt được
+        throw error; 
     }
 }
 
 // ================================
-// LẤY ẢNH & VIDEO (Dùng hàm fetchApi chung)
+// LẤY ẢNH & VIDEO 
 // ================================
 async function getImages() {
     return await fetchApi('/api/images');
@@ -120,8 +77,6 @@ async function displayImages() {
 
     try {
         const allImages = await getImages();
-        // Xóa hộp lỗi nếu thành công
-        clearErrorBox(); 
 
         let html = '';
         let totalImages = 0;
@@ -190,7 +145,6 @@ async function displayVideos() {
 
     try {
         const playlists = await getYoutube();
-        clearErrorBox();
         
         if (Object.keys(playlists).length === 0) {
             container.innerHTML = `
