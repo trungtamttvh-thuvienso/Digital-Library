@@ -2,6 +2,7 @@ services:
   - type: web
     name: cloudinary-backend
     runtime: python
+    rootDir: cloudinary-backend
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
