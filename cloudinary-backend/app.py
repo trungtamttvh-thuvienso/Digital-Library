@@ -115,10 +115,16 @@ def build_album_structure(images):
 @app.route('/api/images', methods=['GET'])
 def get_images():
     try:
-        print("\n🖼️ Đang quét Cloudinary...")
+        print("🖼️ Bắt đầu quét Cloudinary...")
+        
+        # Thêm dòng này để xem biến cấu hình có load được không
+        print(f"Cloud Name: {CLOUDINARY_CONFIG.get('cloud_name')}")
+
         images = get_all_images()
         data = build_album_structure(images)
 
+        print(f"✅ Quét thành công: {len(images)} ảnh")
+        
         return jsonify({
             'success': True,
             'data': data,
@@ -126,7 +132,10 @@ def get_images():
         })
 
     except Exception as e:
-        print(f"❌ Lỗi Cloudinary: {e}")
+        # Ghi lỗi chi tiết ra Log của Render để cậu dễ nhìn thấy
+        print(f"❌ LỖI NGHIÊM TRỌNG CLOUDINARY: {e}")
+        
+        # Trả về lỗi 500 để trình duyệt biết là lỗi Server chứ không phải Not Found
         return jsonify({
             'success': False,
             'error': str(e)
