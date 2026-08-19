@@ -1,65 +1,79 @@
 // ============================================================
-// CẤU HÌNH API URL LINH HOẠT (Đã tối ưu cho điện thoại)
+// CẤU HÌNH API URL - MẶC ĐỊNH LÀ RENDER
 // ============================================================
 
-// 1. URL của Backend trên Render (QUAN TRỌNG: Không có dấu / ở cuối)
+// 1. URL Backend Render (KHÔNG có dấu / ở cuối)
 const RENDER_API_URL = 'https://digital-library-967p.onrender.com';
-
-// 2. URL của Backend chạy Local Python
 const LOCAL_API_URL = 'http://localhost:5000';
 
-// 3. Hàm lấy API URL hiện tại
+// 2. Hàm lấy URL - Mặc định là Render, trừ khi bấm nút Local
 function getApiBaseUrl() {
-    const mode = localStorage.getItem('api_mode') || 'local';
-    console.log(`🔧 Chế độ hiện tại: ${mode}`);
-    // Đã cắt bỏ dấu / thừa nếu có
+    const mode = localStorage.getItem('api_mode') || 'render'; // 👈 Đã đổi default thành 'render'
     const url = mode === 'render' ? RENDER_API_URL : LOCAL_API_URL;
     return url.replace(/\/+$/, ''); 
 }
 
-// 4. Hàm chuyển đổi chế độ
 function switchApiMode(mode) {
     localStorage.setItem('api_mode', mode);
-    console.log(`🔄 Đã chuyển sang chế độ: ${mode}`);
     location.reload();
 }
 
-// ================================
-// LẤY ẢNH (Đã tối ưu cho điện thoại)
-// ================================
-async function getImages() {
-    const baseUrl = getApiBaseUrl();
-    const url = `${baseUrl}/api/images`;
-    console.log("🔄 Đang gọi API:", url);
-
-    try {
-        const response = await fetch(url, {
-            mode: 'cors', // Quan trọng: Ép trình duyệt xử lý CORS
-            headers: { 'Accept': 'application/json' }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        if (!result.success) {
-            throw new Error(result.error || "Lỗi không xác định từ server");
-        }
-        return result.data;
-    } catch (error) {
-        console.error('❌ Lỗi mạng:', error);
-        throw error;
+// ============================================================
+// HỘP LOG HIỂN THỊ LỖI TRÊN MÀN HÌNH (Dành cho điện thoại)
+// ============================================================
+function showErrorOnScreen(message) {
+    // Tìm hoặc tạo thẻ div để hiện lỗi
+    let errorBox = document.getElementById('mobile-error-box');
+    if (!errorBox) {
+        errorBox = document.createElement('div');
+        errorBox.id = 'mobile-error-box';
+        errorBox.style.cssText = `
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            z-index: 99999;
+            background: #ffebee;
+            border: 2px solid #d32f2f;
+            color: #b71c1c;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            max-height: 80vh;
+            overflow-y: auto;
+            display: none; /* Mặc định ẩn, khi có lỗi thì hiện */
+        `;
+        document.body.appendChild(errorBox);
     }
+
+    // Hiện hộp lỗi và in nội dung
+    errorBox.style.display = 'block';
+    const time = new Date().toLocaleTimeString();
+    errorBox.innerHTML += `<div style="border-bottom:1px solid #ef9a9a; padding: 5px 0;">[${time}] ⚠️ ${message}</div>`;
+    
+    // Tự động cuộn xuống dưới cùng
+    errorBox.scrollTop = errorBox.scrollHeight;
+
+    // Console log để cậu vẫn xem được nếu đang dùng máy tính
+    console.error(`[${time}] ⚠️ ${message}`);
 }
 
-// ================================
-// LẤY VIDEO
-// ================================
-async function getYoutube() {
+// Hàm xóa hộp log (nếu muốn xóa khi đã sửa xong lỗi)
+function clearErrorBox() {
+    const box = document.getElementById('mobile-error-box');
+    if (box) box.remove();
+}
+
+// ================================================================
+// HÀM GỌI API (CÓ BẮT LỖI VÀ IN RA MÀN HÌNH)
+// ================================================================
+async function fetchApi(endpoint) {
     const baseUrl = getApiBaseUrl();
-    const url = `${baseUrl}/api/youtube`;
-    console.log("🔄 Đang gọi API YouTube:", url);
+    const url = `${baseUrl}${endpoint}`;
+    console.log("🔄 Gọi API:", url);
+    showErrorOnScreen(`🔄 Đang gọi: ${url}`); // In ra màn hình luôn
 
     try {
         const response = await fetch(url, {
@@ -68,18 +82,31 @@ async function getYoutube() {
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP Lỗi ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
         if (!result.success) {
-            throw new Error(result.error || "Lỗi không xác định từ server");
+            throw new Error(`Server báo lỗi: ${result.error || 'Lỗi không xác định'}`);
         }
         return result.data;
+
     } catch (error) {
-        console.error('❌ Lỗi mạng:', error);
-        throw error;
+        // In lỗi chi tiết ra màn hình
+        showErrorOnScreen(`❌ THẤT BẠI: ${error.message}`);
+        throw error; // Vẫn ném lỗi để hàm display bắt được
     }
+}
+
+// ================================
+// LẤY ẢNH & VIDEO (Dùng hàm fetchApi chung)
+// ================================
+async function getImages() {
+    return await fetchApi('/api/images');
+}
+
+async function getYoutube() {
+    return await fetchApi('/api/youtube');
 }
 
 // ================================
@@ -93,6 +120,8 @@ async function displayImages() {
 
     try {
         const allImages = await getImages();
+        // Xóa hộp lỗi nếu thành công
+        clearErrorBox(); 
 
         let html = '';
         let totalImages = 0;
@@ -141,11 +170,10 @@ async function displayImages() {
         `;
 
     } catch (error) {
-        console.error('❌ Lỗi tải ảnh:', error);
         container.innerHTML = `
             <div style="text-align:center; padding:40px; background:#f8d7da; border-radius:10px;">
                 ❌ Không thể tải ảnh.<br>
-                <span style="font-size:14px; color:#666;">Lỗi chi tiết: ${error.message}</span>
+                <span style="font-size:14px; color:#666;">Lỗi: ${error.message}</span>
             </div>
         `;
     }
@@ -162,6 +190,7 @@ async function displayVideos() {
 
     try {
         const playlists = await getYoutube();
+        clearErrorBox();
         
         if (Object.keys(playlists).length === 0) {
             container.innerHTML = `
@@ -209,7 +238,6 @@ async function displayVideos() {
         `;
 
     } catch (error) {
-        console.error('❌ Lỗi tải video:', error);
         container.innerHTML = `
             <div style="text-align:center; padding:40px; background:#f8d7da; border-radius:10px;">
                 ❌ Không thể tải video: ${error.message}
@@ -223,13 +251,13 @@ function openVideo(videoId) {
 }
 
 // ================================
-// TẠO NÚT CHUYỂN CHẾ ĐỘ (Chỉ hiện trên máy tính)
+// NÚT CHUYỂN CHẾ ĐỘ (Chỉ hiện ở Localhost)
 // ================================
 function addModeSwitcher() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     if (!isLocal) return; 
 
-    const currentMode = localStorage.getItem('api_mode') || 'local';
+    const currentMode = localStorage.getItem('api_mode') || 'render';
     const modeText = currentMode === 'render' ? '🔴 Render' : '🟢 Local';
 
     const switcher = document.createElement('div');
@@ -262,7 +290,6 @@ function addModeSwitcher() {
     document.body.appendChild(switcher);
 }
 
-// Chạy khi trang load xong
 document.addEventListener('DOMContentLoaded', () => {
     addModeSwitcher();
     displayImages();
