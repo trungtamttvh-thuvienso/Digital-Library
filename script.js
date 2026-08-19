@@ -73,7 +73,7 @@ async function fetchApi(endpoint) {
     const baseUrl = getApiBaseUrl();
     const url = `${baseUrl}${endpoint}`;
     console.log("🔄 Gọi API:", url);
-    showErrorOnScreen(`🔄 Đang gọi: ${url}`); // In ra màn hình luôn
+    //showErrorOnScreen(`🔄 Đang gọi: ${url}`); // In ra màn hình luôn
 
     try {
         const response = await fetch(url, {
@@ -93,7 +93,7 @@ async function fetchApi(endpoint) {
 
     } catch (error) {
         // In lỗi chi tiết ra màn hình
-        showErrorOnScreen(`❌ THẤT BẠI: ${error.message}`);
+        //showErrorOnScreen(`❌ THẤT BẠI: ${error.message}`);
         throw error; // Vẫn ném lỗi để hàm display bắt được
     }
 }
