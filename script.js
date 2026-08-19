@@ -4,10 +4,9 @@ const API_BASE_URL = 'https://backend-lfz9.onrender.com';
 // LẤY ẢNH (Đã thêm xử lý lỗi tốt hơn)
 // ================================
 async function getImages() {
-    const url = `${API_BASE_URL}/api/images`;
     console.log("🔄 Đang gọi API:", url);
 
-    const response = await fetch(url);
+    const response = await fetch('https://backend-lfz9.onrender.com/api/images');
     console.log('📡 Status:', response.status);
 
     if (!response.ok) {
